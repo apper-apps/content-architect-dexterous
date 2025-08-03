@@ -81,17 +81,60 @@ const loadDashboardData = async () => {
       
       toast.success(`Analysis complete! SEO Score: ${analysis.seoScore}%`)
       
-      // Update stats with new analysis
+// Update stats with fresh analysis data
       setStats(prev => ({
         ...prev,
-        avgSeoScore: Math.round((prev.avgSeoScore + analysis.seoScore) / 2)
+        avgSeoScore: Math.round((prev.avgSeoScore + analysis.seoScore) / 2),
+        lastAnalysis: analysis.domain,
+        analysisCount: (prev.analysisCount || 0) + 1
       }))
       
+      toast.success(`Fresh SEO analysis completed! Score: ${analysis.seoScore}% for ${analysis.domain}`)
     } catch (err) {
       toast.error(err.message || "Failed to analyze website")
       console.error("Website analysis error:", err)
     } finally {
       setAnalyzing(false)
+    }
+}
+
+  const handleDownloadPDF = async () => {
+    try {
+      const { jsPDF } = await import('jspdf')
+      const doc = new jsPDF()
+      
+      // Add title
+      doc.setFontSize(20)
+      doc.text('SEO Analysis Report', 20, 30)
+      
+      // Add generation date
+      doc.setFontSize(12)
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45)
+      
+      // Add stats
+      doc.setFontSize(14)
+      doc.text('Performance Summary', 20, 65)
+      doc.setFontSize(11)
+      doc.text(`Average SEO Score: ${stats.avgSeoScore}%`, 25, 80)
+      doc.text(`Total Projects: ${activeProjects.length}`, 25, 90)
+      doc.text(`Total Content: ${stats.totalContent}`, 25, 100)
+      
+      // Add recent analysis if available
+      if (analysis) {
+        doc.setFontSize(14)
+        doc.text('Latest Analysis', 20, 120)
+        doc.setFontSize(11)
+        doc.text(`Website: ${analysis.domain}`, 25, 135)
+        doc.text(`SEO Score: ${analysis.seoScore}%`, 25, 145)
+        doc.text(`Keyword: ${analysis.keyword}`, 25, 155)
+        doc.text(`Analysis Date: ${new Date(analysis.generatedAt || Date.now()).toLocaleDateString()}`, 25, 165)
+      }
+      
+      doc.save('seo-report.pdf')
+      toast.success('SEO report downloaded successfully!')
+    } catch (err) {
+      toast.error('Failed to generate PDF report')
+      console.error('PDF generation error:', err)
     }
   }
   
@@ -200,8 +243,23 @@ return (
             <div className="lg:col-span-1">
               <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-medium text-slate-200">Latest Analysis</h3>
-                  <Badge variant="success" className="text-xs">Live Data</Badge>
+<div className="flex items-center justify-between">
+                    <h3 className="font-medium text-slate-200">Latest Analysis</h3>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="success" className="text-xs">Live Data</Badge>
+                      {analysis && (
+                        <Button
+                          onClick={handleDownloadPDF}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs flex items-center space-x-1"
+                        >
+                          <ApperIcon name="Download" className="w-3 h-3" />
+                          <span>PDF</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-3">

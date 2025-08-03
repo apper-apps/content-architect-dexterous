@@ -8,6 +8,7 @@ const initialState = {
   analysisData: null,
   analysisLoading: false,
   liveAnalysisResults: [],
+  pdfGenerating: false,
 }
 
 const projectsSlice = createSlice({
@@ -51,22 +52,42 @@ const projectsSlice = createSlice({
       state.loading = false
     },
     setAnalysisData: (state, action) => {
-      state.analysisData = action.payload
+      // Ensure fresh analysis data with timestamp
+      const analysisWithMeta = {
+        ...action.payload,
+        isLiveData: true,
+        analysisTimestamp: Date.now(),
+        isFresh: true
+      }
+      state.analysisData = analysisWithMeta
       state.analysisLoading = false
     },
     setAnalysisLoading: (state, action) => {
       state.analysisLoading = action.payload
     },
     addLiveAnalysisResult: (state, action) => {
-      state.liveAnalysisResults.unshift(action.payload)
-      // Keep only the last 20 results
-      if (state.liveAnalysisResults.length > 20) {
-        state.liveAnalysisResults = state.liveAnalysisResults.slice(0, 20)
+      // Add fresh analysis result with live data indicators
+      const resultWithMeta = {
+        ...action.payload,
+        isLiveAnalysis: true,
+        timestamp: Date.now(),
+        source: 'real-time'
+      }
+      state.liveAnalysisResults.unshift(resultWithMeta)
+      // Keep only the last 50 results for better performance tracking
+      if (state.liveAnalysisResults.length > 50) {
+        state.liveAnalysisResults = state.liveAnalysisResults.slice(0, 50)
       }
     },
     clearAnalysisData: (state) => {
       state.analysisData = null
       state.analysisLoading = false
+    },
+    setPdfGenerating: (state, action) => {
+      state.pdfGenerating = action.payload
+    },
+    clearLiveAnalysisResults: (state) => {
+      state.liveAnalysisResults = []
     },
   },
 })
@@ -83,6 +104,8 @@ export const {
   setAnalysisLoading,
   addLiveAnalysisResult,
   clearAnalysisData,
+  setPdfGenerating,
+  clearLiveAnalysisResults,
 } = projectsSlice.actions
 
 export default projectsSlice.reducer

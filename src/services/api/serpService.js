@@ -1,7 +1,9 @@
+import React from "react";
+import Error from "@/components/ui/Error";
 class SERPService {
   constructor() {
-    this.cache = new Map()
-    this.cacheExpiry = 5 * 60 * 1000 // 5 minutes
+// Removed cache to ensure fresh, real-time analysis for each URL
+    this.analysisCounter = 0
   }
   
   validateUrl(url) {
@@ -13,29 +15,27 @@ class SERPService {
     }
   }
   
-  async analyzeWebsite(url, keyword = null) {
+async analyzeWebsite(url, keyword = null) {
     if (!this.validateUrl(url)) {
       throw new Error('Please enter a valid URL (including http:// or https://)')
     }
     
-    const cacheKey = `${url}_${keyword || 'general'}`
-    const cached = this.cache.get(cacheKey)
+    // Generate fresh analysis for each request - no caching
+    this.analysisCounter++
+    console.log(`Performing fresh SEO analysis #${this.analysisCounter} for:`, url)
     
-    if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
-      return cached.data
-    }
-    
-// Perform real website analysis
+    // Always perform fresh analysis
+    // Perform real website analysis
     // No artificial delays - provide immediate valuable insights
     
     try {
       const analysis = await this.performWebsiteAnalysis(url, keyword)
       
       // Cache the results
-      this.cache.set(cacheKey, {
-        data: analysis,
-        timestamp: Date.now()
-      })
+      // Fresh analysis generated - no caching to ensure real-time data
+      analysis.generatedAt = new Date().toISOString()
+      analysis.analysisId = this.analysisCounter
+      console.log(`Fresh SEO analysis completed for ${analysis.domain} with score ${analysis.seoScore}%`)
       
       return analysis
     } catch (error) {
