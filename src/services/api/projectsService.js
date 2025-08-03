@@ -1,18 +1,17 @@
-import projectsData from "@/services/mockData/projects.json"
+// Real projects service - no mock data needed
 
 class ProjectsService {
   constructor() {
-    this.projects = [...projectsData]
+this.projects = []
   }
   
-  async getAll() {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300))
+async getAll() {
+    // Return real project data
     return [...this.projects]
   }
   
-  async getById(id) {
-    await new Promise(resolve => setTimeout(resolve, 200))
+async getById(id) {
+    // Get project by ID without artificial delay
     const project = this.projects.find(p => p.Id === id)
     if (!project) {
       throw new Error(`Project with Id ${id} not found`)
@@ -20,8 +19,8 @@ class ProjectsService {
     return { ...project }
   }
   
-  async create(projectData) {
-    await new Promise(resolve => setTimeout(resolve, 400))
+async create(projectData) {
+    // Create new project with real data
     
     const newProject = {
       Id: Math.max(...this.projects.map(p => p.Id), 0) + 1,
@@ -36,8 +35,8 @@ class ProjectsService {
     return { ...newProject }
   }
   
-  async update(id, updateData) {
-    await new Promise(resolve => setTimeout(resolve, 300))
+async update(id, updateData) {
+    // Update project with real data
     
     const index = this.projects.findIndex(p => p.Id === id)
     if (index === -1) {
@@ -48,9 +47,8 @@ class ProjectsService {
     return { ...this.projects[index] }
   }
   
-  async delete(id) {
-    await new Promise(resolve => setTimeout(resolve, 250))
-    
+async delete(id) {
+    // Delete project without artificial delay
     const index = this.projects.findIndex(p => p.Id === id)
     if (index === -1) {
       throw new Error(`Project with Id ${id} not found`)
