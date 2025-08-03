@@ -8,59 +8,133 @@ import Error from "@/components/ui/Error"
 import { serpService } from "@/services/api/serpService"
 
 const SERPAnalyzer = ({ keyword, onEntitiesExtracted }) => {
-  const [serpResults, setSerpResults] = useState([])
+const [serpResults, setSerpResults] = useState([])
   const [entities, setEntities] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   
-  useEffect(() => {
-    if (keyword) {
+useEffect(() => {
+    if (keyword && keyword.trim()) {
       loadSerpData()
     }
   }, [keyword])
   
   const loadSerpData = async () => {
+    if (!keyword || !keyword.trim()) {
+      setError("Please provide a valid keyword for analysis.")
+      return
+    }
+
     setLoading(true)
     setError(null)
-    
-    try {
-      const results = await serpService.analyzeSERP(keyword)
-      setSerpResults(results)
+    setSerpResults([])
+    setEntities([])
+try {
+      // Call the correct service method for SERP analysis
+      const results = await serpService.analyzeSERP(keyword.trim())
       
-      // Extract entities from all results
-      const allEntities = results.reduce((acc, result) => {
-        return [...acc, ...result.entities]
+      // Ensure results is an array
+      const serpArray = Array.isArray(results) ? results : []
+      setSerpResults(serpArray)
+      
+      if (serpArray.length === 0) {
+        setError("No SERP results found for this keyword. Please try a different keyword.")
+        return
+      }
+      
+      // Extract entities from all results with proper error handling
+      const allEntities = serpArray.reduce((acc, result) => {
+        if (result && Array.isArray(result.entities)) {
+          return [...acc, ...result.entities]
+        }
+        return acc
       }, [])
+      
+      if (allEntities.length === 0) {
+        setError("No entities could be extracted from SERP results.")
+        return
+      }
       
       // Remove duplicates and count frequency
       const entityMap = {}
       allEntities.forEach(entity => {
-        entityMap[entity] = (entityMap[entity] || 0) + 1
+        if (entity && typeof entity === 'string') {
+          const cleanEntity = entity.trim().toLowerCase()
+          if (cleanEntity.length > 0) {
+            entityMap[cleanEntity] = (entityMap[cleanEntity] || 0) + 1
+          }
+        }
       })
       
+      // Convert to array and sort by frequency
       const topEntities = Object.entries(entityMap)
+        .filter(([entity, count]) => entity && count > 0)
         .sort(([,a], [,b]) => b - a)
         .slice(0, 20)
-        .map(([entity, count]) => ({ name: entity, count }))
+        .map(([entity, count]) => ({ 
+          name: entity.charAt(0).toUpperCase() + entity.slice(1), 
+          count 
+        }))
       
       setEntities(topEntities)
       
-      if (onEntitiesExtracted) {
+      // Notify parent component
+      if (onEntitiesExtracted && typeof onEntitiesExtracted === 'function') {
         onEntitiesExtracted(topEntities)
       }
+      
     } catch (err) {
-      setError("Failed to analyze SERP results. Please try again.")
+      console.error('SERP Analysis Error:', err)
+      const errorMessage = err.message || "Failed to analyze SERP results. Please try again."
+      setError(errorMessage)
+      setSerpResults([])
+      setEntities([])
     } finally {
       setLoading(false)
     }
   }
   
-  if (loading) {
-    return <Loading />
+if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center">
+          <Loading />
+          <p className="text-slate-400 mt-4">Analyzing SERP results for "{keyword}"...</p>
+        </div>
+      </Card>
+    )
   }
   
   if (error) {
-    return <Error message={error} onRetry={loadSerpData} />
+    return (
+      <Card className="p-8">
+        <Error 
+          title="SERP Analysis Error"
+          message={error} 
+          onRetry={loadSerpData}
+        />
+      </Card>
+    )
+  }
+
+  if (!serpResults || serpResults.length === 0) {
+    return (
+      <Card className="p-8">
+        <div className="text-center">
+          <ApperIcon name="Search" className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Results Found</h3>
+          <p className="text-slate-400 mb-4">
+            No SERP results were found for the keyword "{keyword}".
+          </p>
+          <button
+            onClick={loadSerpData}
+            className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </Card>
+    )
   }
   
   return (
