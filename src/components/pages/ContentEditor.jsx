@@ -1,20 +1,22 @@
-import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { useSelector, useDispatch } from "react-redux"
-import ApperIcon from "@/components/ApperIcon"
-import Button from "@/components/atoms/Button"
-import Loading from "@/components/ui/Loading"
-import Error from "@/components/ui/Error"
-import ContentGenerator from "@/components/organisms/ContentGenerator"
-import { setActiveProject, setLoading, setError } from "@/store/slices/projectsSlice"
-import { projectsService } from "@/services/api/projectsService"
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
+import { projectsService } from "@/services/api/projectsService";
+import ApperIcon from "@/components/ApperIcon";
+import ContentGenerator from "@/components/organisms/ContentGenerator";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
+import Button from "@/components/atoms/Button";
+import { setActiveProject, setError, setLoading } from "@/store/slices/projectsSlice";
 
 const ContentEditor = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { activeProject, loading, error } = useSelector((state) => state.projects)
+const { activeProject, loading, error } = useSelector((state) => state.projects)
   const { entities } = useSelector((state) => state.content)
+  const { addContent, setActiveContent } = require('@/store/slices/contentSlice')
   
   useEffect(() => {
     if (id && (!activeProject || activeProject.Id !== parseInt(id))) {
@@ -32,9 +34,11 @@ const ContentEditor = () => {
     }
   }
   
-  const handleContentGenerated = (content) => {
-    // Content generated successfully
-    console.log("Content generated:", content)
+const handleContentGenerated = (content) => {
+    // Content generated successfully - dispatch to Redux store
+    dispatch(addContent(content))
+    dispatch(setActiveContent(content))
+    toast.success("Content has been generated and saved!")
   }
   
   const retryLoad = () => {

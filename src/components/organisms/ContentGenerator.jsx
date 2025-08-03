@@ -111,10 +111,16 @@ const [generating, setGenerating] = useState(false)
       setContent(generatedContent.body)
       setFaqSection(generatedContent.faqSection)
       
-      toast.success("Content generated successfully!")
+toast.success("Content generated successfully!")
       
       if (onContentGenerated) {
-        onContentGenerated(generatedContent)
+        onContentGenerated({
+          ...generatedContent,
+          projectId: project.Id,
+          seoScore,
+          entities,
+          createdAt: new Date().toISOString()
+        })
       }
     } catch (error) {
       toast.error("Failed to generate content. Please try again.")
