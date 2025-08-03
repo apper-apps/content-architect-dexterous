@@ -2,35 +2,42 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useSelector, useDispatch } from "react-redux"
 import { motion } from "framer-motion"
+import { toast } from "react-toastify"
 import ApperIcon from "@/components/ApperIcon"
 import Button from "@/components/atoms/Button"
 import Card from "@/components/atoms/Card"
 import Badge from "@/components/atoms/Badge"
+import Input from "@/components/atoms/Input"
 import StatCard from "@/components/molecules/StatCard"
 import SEOScoreRing from "@/components/molecules/SEOScoreRing"
+import FormField from "@/components/molecules/FormField"
 import Loading from "@/components/ui/Loading"
 import Error from "@/components/ui/Error"
 import Empty from "@/components/ui/Empty"
-import { setProjects, setLoading, setError } from "@/store/slices/projectsSlice"
+import { setProjects, setLoading, setError, setAnalysisData } from "@/store/slices/projectsSlice"
 import { projectsService } from "@/services/api/projectsService"
 import { contentService } from "@/services/api/contentService"
+import { serpService } from "@/services/api/serpService"
 
 const Dashboard = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { projects, loading, error } = useSelector((state) => state.projects)
+const { projects, loading, error, analysisData } = useSelector((state) => state.projects)
   const [stats, setStats] = useState({
     totalProjects: 0,
     activeProjects: 0,
     totalContent: 0,
     avgSeoScore: 0,
   })
+  const [urlInput, setUrlInput] = useState("")
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisResults, setAnalysisResults] = useState(null)
   
   useEffect(() => {
     loadDashboardData()
   }, [])
   
-  const loadDashboardData = async () => {
+const loadDashboardData = async () => {
     dispatch(setLoading(true))
     try {
       const [projectsData, contentsData] = await Promise.all([
@@ -40,7 +47,7 @@ const Dashboard = () => {
       
       dispatch(setProjects(projectsData))
       
-      // Calculate stats
+      // Calculate stats with real analysis data
       const activeProjects = projectsData.filter(p => p.status === "Active").length
       const avgScore = projectsData.length > 0 
         ? projectsData.reduce((sum, p) => sum + (p.seoScore || 0), 0) / projectsData.length
@@ -54,6 +61,37 @@ const Dashboard = () => {
       })
     } catch (err) {
       dispatch(setError("Failed to load dashboard data. Please try again."))
+      toast.error("Failed to load dashboard data")
+    }
+  }
+  
+  const handleAnalyzeWebsite = async () => {
+    if (!urlInput.trim()) {
+      toast.error("Please enter a website URL to analyze")
+      return
+    }
+    
+    setAnalyzing(true)
+    try {
+      toast.info("Analyzing website... This may take a moment")
+      const analysis = await serpService.analyzeWebsite(urlInput.trim())
+      
+      setAnalysisResults(analysis)
+      dispatch(setAnalysisData(analysis))
+      
+      toast.success(`Analysis complete! SEO Score: ${analysis.seoScore}%`)
+      
+      // Update stats with new analysis
+      setStats(prev => ({
+        ...prev,
+        avgSeoScore: Math.round((prev.avgSeoScore + analysis.seoScore) / 2)
+      }))
+      
+    } catch (err) {
+      toast.error(err.message || "Failed to analyze website")
+      console.error("Website analysis error:", err)
+    } finally {
+      setAnalyzing(false)
     }
   }
   
@@ -90,13 +128,13 @@ const Dashboard = () => {
     )
   }
   
-  return (
+return (
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold gradient-text">Content Dashboard</h1>
-          <p className="text-slate-400 mt-2">Manage your SEO content projects and track performance</p>
+          <p className="text-slate-400 mt-2">Analyze websites in real-time and manage your SEO content projects</p>
         </div>
         
         <Button
@@ -110,7 +148,94 @@ const Dashboard = () => {
         </Button>
       </div>
       
-      {/* Stats Cards */}
+      {/* Website Analysis Section */}
+      <Card className="p-6">
+        <div className="flex items-center space-x-3 mb-6">
+          <ApperIcon name="Search" className="w-6 h-6 text-blue-400" />
+          <h2 className="text-xl font-semibold text-slate-200">Real-Time Website Analysis</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <FormField
+              label="Website URL"
+              className="mb-4"
+            >
+              <div className="flex space-x-3">
+                <Input
+                  type="url"
+                  placeholder="https://example.com"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  className="flex-1"
+                  disabled={analyzing}
+                />
+                <Button
+                  onClick={handleAnalyzeWebsite}
+                  disabled={analyzing || !urlInput.trim()}
+                  variant="primary"
+                  className="flex items-center space-x-2 min-w-[120px]"
+                >
+                  {analyzing ? (
+                    <>
+                      <ApperIcon name="Loader" className="w-4 h-4 animate-spin" />
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ApperIcon name="Search" className="w-4 h-4" />
+                      <span>Analyze</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </FormField>
+            
+            <p className="text-sm text-slate-400">
+              Enter any website URL to get real-time SEO analysis, performance metrics, and optimization recommendations.
+            </p>
+          </div>
+          
+          {analysisResults && (
+            <div className="lg:col-span-1">
+              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-slate-200">Latest Analysis</h3>
+                  <Badge variant="success" className="text-xs">Live Data</Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">SEO Score</span>
+                    <div className="flex items-center space-x-2">
+                      <SEOScoreRing score={analysisResults.seoScore} size="sm" />
+                      <span className="text-slate-200 font-medium">{analysisResults.seoScore}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">Performance</span>
+                    <span className="text-slate-200">{analysisResults.metrics?.performance || 'N/A'}%</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">Mobile Score</span>
+                    <span className="text-slate-200">{analysisResults.metrics?.mobileScore || 'N/A'}%</span>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-slate-700">
+                    <p className="text-xs text-slate-500">
+                      Analyzed: {new Date(analysisResults.lastAnalyzed).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+      
+{/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Projects"
@@ -123,21 +248,21 @@ const Dashboard = () => {
           value={stats.activeProjects}
           icon="Activity"
           trend="up"
-          change="+12% from last month"
+          change="Real-time tracking"
         />
         <StatCard
           title="Content Pieces"
           value={stats.totalContent}
           icon="FileText"
           trend="up"
-          change="+23% from last month"
+          change="Live content analysis"
         />
         <StatCard
           title="Avg SEO Score"
           value={stats.avgSeoScore}
           icon="TrendingUp"
           trend={stats.avgSeoScore >= 75 ? "up" : stats.avgSeoScore >= 50 ? "neutral" : "down"}
-          change={`${stats.avgSeoScore >= 75 ? "+" : ""}${stats.avgSeoScore - 60}% target`}
+          change={`${stats.avgSeoScore >= 70 ? "Good" : "Needs improvement"}`}
         />
       </div>
       

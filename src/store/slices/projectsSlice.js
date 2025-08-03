@@ -5,6 +5,9 @@ const initialState = {
   activeProject: null,
   loading: false,
   error: null,
+  analysisData: null,
+  analysisLoading: false,
+  liveAnalysisResults: [],
 }
 
 const projectsSlice = createSlice({
@@ -47,6 +50,24 @@ const projectsSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
+    setAnalysisData: (state, action) => {
+      state.analysisData = action.payload
+      state.analysisLoading = false
+    },
+    setAnalysisLoading: (state, action) => {
+      state.analysisLoading = action.payload
+    },
+    addLiveAnalysisResult: (state, action) => {
+      state.liveAnalysisResults.unshift(action.payload)
+      // Keep only the last 20 results
+      if (state.liveAnalysisResults.length > 20) {
+        state.liveAnalysisResults = state.liveAnalysisResults.slice(0, 20)
+      }
+    },
+    clearAnalysisData: (state) => {
+      state.analysisData = null
+      state.analysisLoading = false
+    },
   },
 })
 
@@ -58,6 +79,10 @@ export const {
   deleteProject,
   setLoading,
   setError,
+  setAnalysisData,
+  setAnalysisLoading,
+  addLiveAnalysisResult,
+  clearAnalysisData,
 } = projectsSlice.actions
 
 export default projectsSlice.reducer
