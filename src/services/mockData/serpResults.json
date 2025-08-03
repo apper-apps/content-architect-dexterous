@@ -1,0 +1,102 @@
+[
+  {
+    "position": 1,
+    "title": "Leading Business Solutions Provider",
+    "url": "https://example1.com/solutions",
+    "description": "Comprehensive business solutions for modern enterprises. Expert consulting and implementation services.",
+    "domainAuthority": 85,
+    "contentType": "Article",
+    "keywords": ["business solutions", "consulting", "enterprise"],
+    "entities": ["strategy", "implementation", "consulting"]
+  },
+  {
+    "position": 2,
+    "title": "Professional Services Hub",
+    "url": "https://example2.com/services",
+    "description": "Professional services and consulting for businesses of all sizes. Proven methodologies and expert guidance.",
+    "domainAuthority": 78,
+    "contentType": "Service Page",
+    "keywords": ["professional services", "consulting", "business"],
+    "entities": ["consulting", "strategy", "professional"]
+  },
+  {
+    "position": 3,
+    "title": "Industry Expert Blog",
+    "url": "https://example3.com/blog/guide",
+    "description": "Expert insights and industry analysis. Stay updated with the latest trends and best practices.",
+    "domainAuthority": 72,
+    "contentType": "Blog Post",
+    "keywords": ["expert insights", "industry analysis", "trends"],
+    "entities": ["analysis", "trends", "insights"]
+  },
+  {
+    "position": 4,
+    "title": "Complete Resource Center",
+    "url": "https://example4.com/resources",
+    "description": "Comprehensive resources and guides for business professionals. Tools, templates, and expert advice.",
+    "domainAuthority": 69,
+    "contentType": "Resource Hub",
+    "keywords": ["resources", "guides", "templates"],
+    "entities": ["resources", "tools", "templates"]
+  },
+  {
+    "position": 5,
+    "title": "Technology Solutions Provider",
+    "url": "https://example5.com/technology",
+    "description": "Cutting-edge technology solutions for modern businesses. Innovation meets practical application.",
+    "domainAuthority": 81,
+    "contentType": "Product Page",
+    "keywords": ["technology", "solutions", "innovation"],
+    "entities": ["technology", "innovation", "solutions"]
+  },
+  {
+    "position": 6,
+    "title": "Educational Platform",
+    "url": "https://example6.com/learn",
+    "description": "Learn from industry experts through comprehensive courses and tutorials. Practical knowledge for real results.",
+    "domainAuthority": 75,
+    "contentType": "Educational",
+    "keywords": ["education", "courses", "learning"],
+    "entities": ["education", "learning", "training"]
+  },
+  {
+    "position": 7,
+    "title": "Community Forum",
+    "url": "https://example7.com/community",
+    "description": "Join the community of professionals sharing insights and best practices. Connect, learn, and grow together.",
+    "domainAuthority": 66,
+    "contentType": "Forum",
+    "keywords": ["community", "forum", "networking"],
+    "entities": ["community", "networking", "collaboration"]
+  },
+  {
+    "position": 8,
+    "title": "Research Institute",
+    "url": "https://example8.com/research",
+    "description": "Leading research and analysis in the industry. Data-driven insights and trend forecasting.",
+    "domainAuthority": 88,
+    "contentType": "Research",
+    "keywords": ["research", "analysis", "data"],
+    "entities": ["research", "data", "analysis"]
+  },
+  {
+    "position": 9,
+    "title": "Software Platform",
+    "url": "https://example9.com/platform",
+    "description": "Powerful software platform designed for efficiency and scalability. Transform your operations.",
+    "domainAuthority": 79,
+    "contentType": "Software",
+    "keywords": ["software", "platform", "efficiency"],
+    "entities": ["software", "platform", "automation"]
+  },
+  {
+    "position": 10,
+    "title": "Consulting Group",
+    "url": "https://example10.com/consulting",
+    "description": "Strategic consulting for business transformation. Expert advisors with proven track records.",
+    "domainAuthority": 73,
+    "contentType": "Consulting",
+    "keywords": ["consulting", "strategy", "transformation"],
+    "entities": ["consulting", "strategy", "transformation"]
+  }
+]
