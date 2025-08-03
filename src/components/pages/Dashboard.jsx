@@ -1,23 +1,23 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { useSelector, useDispatch } from "react-redux"
-import { motion } from "framer-motion"
-import { toast } from "react-toastify"
-import ApperIcon from "@/components/ApperIcon"
-import Button from "@/components/atoms/Button"
-import Card from "@/components/atoms/Card"
-import Badge from "@/components/atoms/Badge"
-import Input from "@/components/atoms/Input"
-import StatCard from "@/components/molecules/StatCard"
-import SEOScoreRing from "@/components/molecules/SEOScoreRing"
-import FormField from "@/components/molecules/FormField"
-import Loading from "@/components/ui/Loading"
-import Error from "@/components/ui/Error"
-import Empty from "@/components/ui/Empty"
-import { setProjects, setLoading, setError, setAnalysisData } from "@/store/slices/projectsSlice"
-import { projectsService } from "@/services/api/projectsService"
-import { contentService } from "@/services/api/contentService"
-import { serpService } from "@/services/api/serpService"
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
+import { projectsService } from "@/services/api/projectsService";
+import { serpService } from "@/services/api/serpService";
+import { contentService } from "@/services/api/contentService";
+import ApperIcon from "@/components/ApperIcon";
+import SEOScoreRing from "@/components/molecules/SEOScoreRing";
+import StatCard from "@/components/molecules/StatCard";
+import FormField from "@/components/molecules/FormField";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import { setAnalysisData, setError, setLoading, setProjects } from "@/store/slices/projectsSlice";
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -97,6 +97,10 @@ const loadDashboardData = async () => {
       setAnalyzing(false)
     }
 }
+}
+
+// Calculate active projects from existing projects state
+  const activeProjects = projects.filter(project => project.status === 'active') || []
 
   const handleDownloadPDF = async () => {
     try {
@@ -116,7 +120,7 @@ const loadDashboardData = async () => {
       doc.text('Performance Summary', 20, 65)
       doc.setFontSize(11)
       doc.text(`Average SEO Score: ${stats.avgSeoScore}%`, 25, 80)
-      doc.text(`Total Projects: ${activeProjects.length}`, 25, 90)
+      doc.text(`Total Projects: ${activeProjects?.length || 0}`, 25, 90)
       doc.text(`Total Content: ${stats.totalContent}`, 25, 100)
       
       // Add recent analysis if available
@@ -124,9 +128,9 @@ const loadDashboardData = async () => {
         doc.setFontSize(14)
         doc.text('Latest Analysis', 20, 120)
         doc.setFontSize(11)
-        doc.text(`Website: ${analysis.domain}`, 25, 135)
-        doc.text(`SEO Score: ${analysis.seoScore}%`, 25, 145)
-        doc.text(`Keyword: ${analysis.keyword}`, 25, 155)
+        doc.text(`Website: ${analysis.domain || 'N/A'}`, 25, 135)
+        doc.text(`SEO Score: ${analysis.seoScore || 0}%`, 25, 145)
+        doc.text(`Keyword: ${analysis.keyword || 'N/A'}`, 25, 155)
         doc.text(`Analysis Date: ${new Date(analysis.generatedAt || Date.now()).toLocaleDateString()}`, 25, 165)
       }
       
@@ -239,11 +243,11 @@ return (
             </p>
           </div>
           
-          {analysisResults && (
+{analysisResults && (
             <div className="lg:col-span-1">
               <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
                 <div className="flex items-center justify-between mb-3">
-<div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <h3 className="font-medium text-slate-200">Latest Analysis</h3>
                     <div className="flex items-center space-x-2">
                       <Badge variant="success" className="text-xs">Live Data</Badge>
