@@ -8,15 +8,14 @@ import ContentGenerator from "@/components/organisms/ContentGenerator";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Button from "@/components/atoms/Button";
+import { addContent, setActiveContent } from "@/store/slices/contentSlice";
 import { setActiveProject, setError, setLoading } from "@/store/slices/projectsSlice";
-
 const ContentEditor = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
 const { activeProject, loading, error } = useSelector((state) => state.projects)
   const { entities } = useSelector((state) => state.content)
-  const { addContent, setActiveContent } = require('@/store/slices/contentSlice')
   
   useEffect(() => {
     if (id && (!activeProject || activeProject.Id !== parseInt(id))) {
