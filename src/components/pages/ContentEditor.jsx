@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast";
-import { projectsService } from "@/services/api/projectsService";
-import ApperIcon from "@/components/ApperIcon";
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
+import { projectsService } from '@/services/api/projectsService'
+import ApperIcon from '@/components/ApperIcon'
 import ContentGenerator from "@/components/organisms/ContentGenerator";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
