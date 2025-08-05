@@ -1,5 +1,5 @@
-import React from "react";
-import Error from "@/components/ui/Error";
+// SERP Analysis Service
+// Provides SERP analysis and website SEO analysis functionality
 class SERPService {
   constructor() {
 // Removed cache to ensure fresh, real-time analysis for each URL
