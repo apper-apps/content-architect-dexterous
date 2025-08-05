@@ -94,13 +94,12 @@ const loadDashboardData = async () => {
       toast.error(err.message || "Failed to analyze website")
       console.error("Website analysis error:", err)
     } finally {
-      setAnalyzing(false)
+setAnalyzing(false)
     }
-}
-}
+  }
 
-// Calculate active projects from existing projects state
-  const activeProjects = projects.filter(project => project.status === 'active') || []
+  // Calculate active projects from existing projects state  
+  const activeProjects = projects.filter(project => project.status === 'Active') || []
 
   const handleDownloadPDF = async () => {
     try {
@@ -124,14 +123,14 @@ const loadDashboardData = async () => {
       doc.text(`Total Content: ${stats.totalContent}`, 25, 100)
       
       // Add recent analysis if available
-      if (analysis) {
+      if (analysisResults) {
         doc.setFontSize(14)
         doc.text('Latest Analysis', 20, 120)
         doc.setFontSize(11)
-        doc.text(`Website: ${analysis.domain || 'N/A'}`, 25, 135)
-        doc.text(`SEO Score: ${analysis.seoScore || 0}%`, 25, 145)
-        doc.text(`Keyword: ${analysis.keyword || 'N/A'}`, 25, 155)
-        doc.text(`Analysis Date: ${new Date(analysis.generatedAt || Date.now()).toLocaleDateString()}`, 25, 165)
+        doc.text(`Website: ${analysisResults.domain || 'N/A'}`, 25, 135)
+        doc.text(`SEO Score: ${analysisResults.seoScore || 0}%`, 25, 145)
+        doc.text(`Keyword: ${analysisResults.keyword || 'N/A'}`, 25, 155)
+        doc.text(`Analysis Date: ${new Date(analysisResults.generatedAt || Date.now()).toLocaleDateString()}`, 25, 165)
       }
       
       doc.save('seo-report.pdf')
@@ -251,7 +250,7 @@ return (
                     <h3 className="font-medium text-slate-200">Latest Analysis</h3>
                     <div className="flex items-center space-x-2">
                       <Badge variant="success" className="text-xs">Live Data</Badge>
-                      {analysis && (
+{analysisResults && (
                         <Button
                           onClick={handleDownloadPDF}
                           variant="ghost"
