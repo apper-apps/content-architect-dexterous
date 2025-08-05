@@ -1,71 +1,318 @@
-// Real content service - no mock data needed
-
+// Apper Content Service - Database Integration
 class ContentService {
   constructor() {
-this.contents = []
-  }
-  
-async getAll() {
-    // Return real content data without artificial delays
-    return [...this.contents]
-  }
-  
-async getById(id) {
-    // Get content by ID without delay
-    const content = this.contents.find(c => c.Id === id)
-    if (!content) {
-      throw new Error(`Content with Id ${id} not found`)
-    }
-    return { ...content }
-  }
-  
-async getByProjectId(projectId) {
-    // Get content by project ID without delay
-    return this.contents.filter(c => c.projectId === projectId)
-  }
-  
-async create(contentData) {
-    // Create content without artificial delays
+    // Initialize ApperClient with Project ID and Public Key
+    const { ApperClient } = window.ApperSDK;
+    this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
     
-    const newContent = {
-      Id: Math.max(...this.contents.map(c => c.Id), 0) + 1,
-      ...contentData,
-      createdAt: new Date().toISOString(),
-      status: "Draft",
-      wordCount: contentData.body ? contentData.body.split(" ").length : 0,
-    }
+    this.tableName = 'content';
     
-    this.contents.unshift(newContent)
-    return { ...newContent }
+    // Define lookup fields for special handling
+    this.lookupFields = ['Owner', 'CreatedBy', 'ModifiedBy', 'projectId'];
+  }
+  
+  async getAll() {
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "title" } },
+          { field: { Name: "metaDescription" } },
+          { field: { Name: "body" } },
+          { field: { Name: "faqSection" } },
+          { field: { Name: "seoScore" } },
+          { field: { Name: "entities" } },
+          { field: { Name: "wordCount" } },
+          { field: { Name: "status" } },
+          { field: { Name: "createdAt" } },
+          { field: { Name: "projectId" } }
+        ],
+        orderBy: [
+          {
+            fieldName: "CreatedOn",
+            sorttype: "DESC"
+          }
+        ],
+        pagingInfo: {
+          limit: 100,
+          offset: 0
+        }
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error fetching contents:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return [];
+    }
+  }
+  
+  async getById(id) {
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "title" } },
+          { field: { Name: "metaDescription" } },
+          { field: { Name: "body" } },
+          { field: { Name: "faqSection" } },
+          { field: { Name: "seoScore" } },
+          { field: { Name: "entities" } },
+          { field: { Name: "wordCount" } },
+          { field: { Name: "status" } },
+          { field: { Name: "createdAt" } },
+          { field: { Name: "projectId" } }
+        ]
+      };
+      
+      const response = await this.apperClient.getRecordById(this.tableName, id, params);
+      
+      if (!response || !response.data) {
+        throw new Error(`Content with Id ${id} not found`);
+      }
+      
+      return response.data;
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error(`Error fetching content with ID ${id}:`, error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
+    }
+  }
+  
+  async getByProjectId(projectId) {
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { Name: "title" } },
+          { field: { Name: "metaDescription" } },
+          { field: { Name: "body" } },
+          { field: { Name: "faqSection" } },
+          { field: { Name: "seoScore" } },
+          { field: { Name: "entities" } },
+          { field: { Name: "wordCount" } },
+          { field: { Name: "status" } },
+          { field: { Name: "createdAt" } },
+          { field: { Name: "projectId" } }
+        ],
+        where: [
+          {
+            FieldName: "projectId",
+            Operator: "EqualTo",
+            Values: [parseInt(projectId)]
+          }
+        ],
+        orderBy: [
+          {
+            fieldName: "CreatedOn",
+            sorttype: "DESC"
+          }
+        ]
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error fetching contents by project ID:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return [];
+    }
+  }
+  
+  async create(contentData) {
+    try {
+      // Only include Updateable fields in create operation
+      const createData = {
+        Name: contentData.Name || contentData.title || 'New Content',
+        Tags: contentData.Tags || '',
+        title: contentData.title,
+        metaDescription: contentData.metaDescription,
+        body: contentData.body,
+        faqSection: JSON.stringify(contentData.faqSection || []),
+        seoScore: contentData.seoScore || 0,
+        entities: typeof contentData.entities === 'string' ? contentData.entities : (Array.isArray(contentData.entities) ? contentData.entities.join(',') : ''),
+        wordCount: contentData.wordCount || (contentData.body ? contentData.body.split(" ").length : 0),
+        status: contentData.status || 'Draft',
+        createdAt: new Date().toISOString(),
+        projectId: parseInt(contentData.projectId)
+      };
+      
+      const params = {
+        records: [createData]
+      };
+      
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successfulRecords = response.results.filter(result => result.success);
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create contents ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          
+          failedRecords.forEach(record => {
+            record.errors?.forEach(error => {
+              console.error(`${error.fieldLabel}: ${error.message}`);
+            });
+          });
+        }
+        
+        if (successfulRecords.length > 0) {
+          return successfulRecords[0].data;
+        }
+      }
+      
+      throw new Error('Failed to create content');
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error creating content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
+    }
   }
   
   async update(id, updateData) {
-// Update content without artificial delays
-    const index = this.contents.findIndex(c => c.Id === id)
-    if (index === -1) {
-      throw new Error(`Content with Id ${id} not found`)
+    try {
+      // Only include Updateable fields in update operation
+      const updateFields = {
+        Id: id,
+        Name: updateData.Name,
+        Tags: updateData.Tags,
+        title: updateData.title,
+        metaDescription: updateData.metaDescription,
+        body: updateData.body,
+        faqSection: updateData.faqSection ? JSON.stringify(updateData.faqSection) : undefined,
+        seoScore: updateData.seoScore,
+        entities: typeof updateData.entities === 'string' ? updateData.entities : (Array.isArray(updateData.entities) ? updateData.entities.join(',') : undefined),
+        wordCount: updateData.wordCount,
+        status: updateData.status,
+        createdAt: updateData.createdAt,
+        projectId: updateData.projectId ? parseInt(updateData.projectId) : undefined
+      };
+      
+      // Remove undefined fields
+      Object.keys(updateFields).forEach(key => {
+        if (updateFields[key] === undefined) {
+          delete updateFields[key];
+        }
+      });
+      
+      const params = {
+        records: [updateFields]
+      };
+      
+      const response = await this.apperClient.updateRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successfulUpdates = response.results.filter(result => result.success);
+        const failedUpdates = response.results.filter(result => !result.success);
+        
+        if (failedUpdates.length > 0) {
+          console.error(`Failed to update contents ${failedUpdates.length} records:${JSON.stringify(failedUpdates)}`);
+          
+          failedUpdates.forEach(record => {
+            record.errors?.forEach(error => {
+              console.error(`${error.fieldLabel}: ${error.message}`);
+            });
+          });
+        }
+        
+        if (successfulUpdates.length > 0) {
+          return successfulUpdates[0].data;
+        }
+      }
+      
+      throw new Error('Failed to update content');
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error updating content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
     }
-    
-    this.contents[index] = { 
-      ...this.contents[index], 
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    }
-    return { ...this.contents[index] }
   }
   
   async delete(id) {
-// Delete content without artificial delays
-    const index = this.contents.findIndex(c => c.Id === id)
-    if (index === -1) {
-      throw new Error(`Content with Id ${id} not found`)
+    try {
+      const params = {
+        RecordIds: [id]
+      };
+      
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successfulDeletions = response.results.filter(result => result.success);
+        const failedDeletions = response.results.filter(result => !result.success);
+        
+        if (failedDeletions.length > 0) {
+          console.error(`Failed to delete contents ${failedDeletions.length} records:${JSON.stringify(failedDeletions)}`);
+          
+          failedDeletions.forEach(record => {
+            if (record.message) console.error(record.message);
+          });
+        }
+        
+        return successfulDeletions.length > 0;
+      }
+      
+      return false;
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error deleting content:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
     }
-    
-    this.contents.splice(index, 1)
-    return true
   }
-  
-async generateContent({ businessType, targetKeyword, location, toneOfVoice, entities }) {
+
+  async generateContent({ businessType, targetKeyword, location, toneOfVoice, entities }) {
     // Generate high-quality, specific content without artificial delays
     
     const locationText = location ? ` in ${location}` : ''
@@ -261,7 +508,7 @@ ${tone === "professional" ?
     ]
   }
   
-async analyzeSEO({ title, metaDescription, content, targetKeyword, entities }) {
+  async analyzeSEO({ title, metaDescription, content, targetKeyword, entities }) {
     // Perform comprehensive SEO analysis without artificial delays
     
     let score = 0
@@ -460,4 +707,4 @@ async analyzeSEO({ title, metaDescription, content, targetKeyword, entities }) {
   }
 }
 
-export const contentService = new ContentService()
+export const contentService = new ContentService();

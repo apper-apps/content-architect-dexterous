@@ -1,13 +1,27 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import ApperIcon from "@/components/ApperIcon"
 import { cn } from "@/utils/cn"
+import { AuthContext } from "../../App"
+
+const LogoutButton = () => {
+  const { logout } = useContext(AuthContext);
+  
+  return (
+    <button
+      onClick={logout}
+      className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+    >
+      <ApperIcon name="LogOut" className="w-4 h-4" />
+      <span>Logout</span>
+    </button>
+  );
+};
 
 const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const location = useLocation()
-  
 const navigation = [
     { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "New Project", href: "/new-project", icon: "Plus" },
@@ -100,8 +114,8 @@ const navigation = [
         </div>
       </nav>
       
-      {/* Footer */}
-      <div className="p-4 border-t border-slate-700/50">
+{/* Footer */}
+      <div className="p-4 border-t border-slate-700/50 space-y-3">
         <div className="glass-panel rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
@@ -113,6 +127,9 @@ const navigation = [
             </div>
           </div>
         </div>
+        
+        {/* Logout Button */}
+        <LogoutButton />
       </div>
     </div>
   )

@@ -1,11 +1,58 @@
-// SERP Analysis Service
+// SERP Analysis Service with Database Integration
 // Provides SERP analysis and website SEO analysis functionality
 class SERPService {
   constructor() {
-// Removed cache to ensure fresh, real-time analysis for each URL
-    this.analysisCounter = 0
+    // Initialize ApperClient with Project ID and Public Key
+    const { ApperClient } = window.ApperSDK;
+    this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+    
+    this.tableName = 'serp_result';
+    this.analysisCounter = 0;
   }
   
+  async saveSerpResult(serpData) {
+    try {
+      // Only include Updateable fields in create operation
+      const createData = {
+        Name: serpData.Name || serpData.title || 'SERP Result',
+        Tags: serpData.Tags || '',
+        position: serpData.position,
+        title: serpData.title,
+        url: serpData.url,
+        description: serpData.description,
+        domainAuthority: serpData.domainAuthority || 0,
+        contentType: serpData.contentType || 'Article',
+        keywords: typeof serpData.keywords === 'string' ? serpData.keywords : (Array.isArray(serpData.keywords) ? serpData.keywords.join(',') : ''),
+        entities: typeof serpData.entities === 'string' ? serpData.entities : (Array.isArray(serpData.entities) ? serpData.entities.join(',') : '')
+      };
+      
+      const params = {
+        records: [createData]
+      };
+      
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error('Failed to save SERP result:', response.message);
+        return null;
+      }
+      
+      if (response.results && response.results.length > 0) {
+        const successfulRecords = response.results.filter(result => result.success);
+        if (successfulRecords.length > 0) {
+          return successfulRecords[0].data;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error saving SERP result:', error.message);
+      return null;
+    }
+  }
   validateUrl(url) {
     try {
       const urlObj = new URL(url)
