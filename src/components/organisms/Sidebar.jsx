@@ -8,12 +8,15 @@ const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const location = useLocation()
   
-  const navigation = [
+const navigation = [
     { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "New Project", href: "/new-project", icon: "Plus" },
-    { name: "SERP Analyzer", href: "/analyzer", icon: "Search" },
-    { name: "Content Editor", href: "/editor", icon: "Edit3" },
     { name: "SEO Reports", href: "/reports", icon: "BarChart3" },
+  ]
+  
+  const projectNavigation = [
+    { name: "SERP Analyzer", href: "/project/1/analyzer", icon: "Search" },
+    { name: "Content Editor", href: "/project/1/editor", icon: "Edit3" },
   ]
   
   const SidebarContent = () => (
@@ -29,8 +32,9 @@ const Sidebar = () => {
         </div>
       </div>
       
-      {/* Navigation */}
+{/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
+        {/* Main Navigation */}
         {navigation.map((item) => (
           <NavLink
             key={item.name}
@@ -59,6 +63,41 @@ const Sidebar = () => {
             )}
           </NavLink>
         ))}
+        
+        {/* Project Tools Section */}
+        <div className="pt-4">
+          <h3 className="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Project Tools
+          </h3>
+          {projectNavigation.map((item) => (
+            <NavLink
+              key={item.name}
+              to={item.href}
+              onClick={() => setIsMobileOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600/20 to-blue-700/20 text-blue-300 border border-blue-500/30"
+                    : "text-slate-300 hover:text-white hover:bg-slate-700/50"
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <ApperIcon 
+                    name={item.icon} 
+                    className={cn(
+                      "w-5 h-5 transition-colors",
+                      isActive ? "text-blue-400" : "text-slate-400 group-hover:text-slate-300"
+                    )} 
+                  />
+                  <span>{item.name}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
       </nav>
       
       {/* Footer */}
